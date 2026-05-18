@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片旋转与发光效果</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #fff;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d4ff, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: #a0a0a0;
+            margin-bottom: 40px;
+        }
+
+        .image-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 500px;
+            perspective: 1000px;
+            margin-bottom: 30px;
+        }
+
+        .image-wrapper {
+            width: 300px;
+            height: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #targetImage {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            transition: filter 0.3s ease;
+            border-radius: 12px;
+        }
+
+        .glow-red {
+            filter: drop-shadow(0 0 20px #ff4757) drop-shadow(0 0 40px #ff4757);
+        }
+
+        .glow-blue {
+            filter: drop-shadow(0 0 20px #3742fa) drop-shadow(0 0 40px #3742fa);
+        }
+
+        .glow-green {
+            filter: drop-shadow(0 0 20px #2ed573) drop-shadow(0 0 40px #2ed573);
+        }
+
+        .glow-purple {
+            filter: drop-shadow(0 0 20px #a55eea) drop-shadow(0 0 40px #a55eea);
+        }
+
+        .glow-yellow {
+            filter: drop-shadow(0 0 20px #ffd43b) drop-shadow(0 0 40px #ffd43b);
+        }
+
+        .glow-pink {
+            filter: drop-shadow(0 0 20px #ff6b9d) drop-shadow(0 0 40px #ff6b9d);
+        }
+
+        @keyframes rotate360 {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes rotateHorizontal {
+            0%, 100% { transform: rotateY(0deg); }
+            50% { transform: rotateY(180deg); }
+        }
+
+        @keyframes rotateVertical {
+            0%, 100% { transform: rotateX(0deg); }
+            50% { transform: rotateX(180deg); }
+        }
+
+        @keyframes rotateDiagonal {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(45deg); }
+            50% { transform: rotate(90deg); }
+            75% { transform: rotate(135deg); }
+            100% { transform: rotate(180deg); }
+        }
+
+        @keyframes rotateWave {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(15deg) scale(1.05); }
+            75% { transform: rotate(-15deg) scale(1.05); }
+        }
+
+        .rotate-360 {
+            animation: rotate360 3s linear infinite;
+        }
+
+        .rotate-horizontal {
+            animation: rotateHorizontal 2s ease-in-out infinite;
+        }
+
+        .rotate-vertical {
+            animation: rotateVertical 2s ease-in-out infinite;
+        }
+
+        .rotate-diagonal {
+            animation: rotateDiagonal 2s ease-in-out infinite;
+        }
+
+        .rotate-wave {
+            animation: rotateWave 1s ease-in-out infinite;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            max-width: 800px;
+            margin: 0 auto 30px;
+        }
+
+        .control-group {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .control-group h3 {
+            font-size: 1rem;
+            margin-bottom: 15px;
+            color: #b0b0b0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: capitalize;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00d4ff, #7c3aed);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn.active {
+            background: linear-gradient(135deg, #2ed573, #1dd1a1);
+            box-shadow: 0 0 20px rgba(46, 213, 115, 0.5);
+        }
+
+        .glow-btn {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glow-btn::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: rotate(45deg);
+            transition: all 0.5s ease;
+        }
+
+        .glow-btn:hover::before {
+            left: 100%;
+        }
+
+        .custom-controls {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 25px;
+            max-width: 500px;
+            margin: 0 auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .custom-controls h3 {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            color: #b0b0b0;
+        }
+
+        .slider-container {
+            margin-bottom: 20px;
+        }
+
+        .slider-container label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: #d0d0d0;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.2);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00d4ff, #7c3aed);
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00d4ff, #7c3aed);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+        }
+
+        .slider-value {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-left: 10px;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .custom-rotation-display {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 212, 255, 0.1);
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #00d4ff;
+        }
+
+        .upload-section {
+            margin-bottom: 30px;
+        }
+
+        .upload-btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .info-box {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            color: #a0a0a0;
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .image-wrapper {
+                width: 250px;
+                height: 250px;
+            }
+
+            .controls {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>图片旋转与发光效果</h1>
+        <p class="subtitle">支持多种旋转方式和发光效果</p>
+
+        <div class="upload-section">
+            <label for="fileInput" class="upload-btn">
+                📷 选择图片
+            </label>
+            <input type="file" id="fileInput" accept="image/*">
+        </div>
+
+        <div class="image-container">
+            <div class="image-wrapper" id="imageWrapper">
+                <img id="targetImage" src="https://picsum.photos/300/300" alt="示例图片">
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <h3>旋转效果</h3>
+                <button class="btn btn-primary glow-btn" onclick="startRotation('rotate-360', event)">360° 旋转</button>
+                <button class="btn btn-secondary" onclick="startRotation('rotate-horizontal', event)">水平翻转</button>
+                <button class="btn btn-secondary" onclick="startRotation('rotate-vertical', event)">垂直翻转</button>
+                <button class="btn btn-secondary" onclick="startRotation('rotate-diagonal', event)">对角线旋转</button>
+                <button class="btn btn-secondary" onclick="startRotation('rotate-wave', event)">波浪摇摆</button>
+                <button class="btn btn-secondary" onclick="stopRotation()">停止旋转</button>
+            </div>
+
+            <div class="control-group">
+                <h3>发光效果</h3>
+                <button class="btn btn-secondary" onclick="setGlow('glow-red')">🔴 红色</button>
+                <button class="btn btn-secondary" onclick="setGlow('glow-blue')">🔵 蓝色</button>
+                <button class="btn btn-secondary" onclick="setGlow('glow-green')">🟢 绿色</button>
+                <button class="btn btn-secondary" onclick="setGlow('glow-purple')">🟣 紫色</button>
+                <button class="btn btn-secondary" onclick="setGlow('glow-yellow')">🟡 黄色</button>
+                <button class="btn btn-secondary" onclick="setGlow('none')">❌ 关闭</button>
+            </div>
+        </div>
+
+        <div class="custom-controls">
+            <h3>🎛️ 自定义旋转</h3>
+            
+            <div class="slider-container">
+                <label>
+                    旋转角度: 
+                    <span class="slider-value" id="rotationValue">0°</span>
+                </label>
+                <input type="range" id="rotationSlider" min="0" max="360" value="0" oninput="updateCustomRotation()">
+            </div>
+
+            <div class="slider-container">
+                <label>
+                    动画速度: 
+                    <span class="slider-value" id="speedValue">3s</span>
+                </label>
+                <input type="range" id="speedSlider" min="0.5" max="10" step="0.5" value="3" oninput="updateCustomRotation()">
+            </div>
+
+            <div class="slider-container">
+                <label>
+                    发光强度: 
+                    <span class="slider-value" id="glowValue">100%</span>
+                </label>
+                <input type="range" id="glowSlider" min="0" max="200" step="10" value="100" oninput="updateCustomGlow()">
+            </div>
+
+            <button class="btn btn-primary glow-btn" style="margin-top: 15px;" onclick="applyCustomRotation()">应用自定义旋转</button>
+            <button class="btn btn-secondary" style="margin-top: 8px;" onclick="resetCustom()">重置</button>
+
+            <div class="custom-rotation-display" id="rotationDisplay">
+                transform: rotate(0deg);<br>
+                animation-duration: 3s;
+            </div>
+        </div>
+
+        <div class="info-box">
+            💡 提示：点击"选择图片"可以上传本地图片，然后尝试各种旋转和发光效果。所有效果均使用CSS动画实现，无需额外依赖。
+        </div>
+    </div>
+
+    <script>
+        const imageWrapper = document.getElementById('imageWrapper');
+        const targetImage = document.getElementById('targetImage');
+        const fileInput = document.getElementById('fileInput');
+        const rotationSlider = document.getElementById('rotationSlider');
+        const speedSlider = document.getElementById('speedSlider');
+        const glowSlider = document.getElementById('glowSlider');
+        const rotationValue = document.getElementById('rotationValue');
+        const speedValue = document.getElementById('speedValue');
+        const glowValue = document.getElementById('glowValue');
+        const rotationDisplay = document.getElementById('rotationDisplay');
+
+        let currentRotationClass = '';
+        let currentGlowClass = '';
+
+        function startRotation(rotationClass, event) {
+            stopRotation();
+            currentRotationClass = rotationClass;
+            imageWrapper.classList.add(rotationClass);
+            
+            document.querySelectorAll('.btn').forEach(btn => btn.classList.remove('active'));
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
+        }
+
+        function stopRotation() {
+            imageWrapper.classList.remove('rotate-360', 'rotate-horizontal', 'rotate-vertical', 'rotate-diagonal', 'rotate-wave');
+            imageWrapper.style.transform = '';
+            imageWrapper.style.animation = '';
+            currentRotationClass = '';
+            
+            document.querySelectorAll('.btn').forEach(btn => btn.classList.remove('active'));
+        }
+
+        function setGlow(glowClass) {
+            targetImage.classList.remove('glow-red', 'glow-blue', 'glow-green', 'glow-purple', 'glow-yellow', 'glow-pink');
+            targetImage.style.filter = '';
+            
+            if (glowClass !== 'none') {
+                targetImage.classList.add(glowClass);
+                currentGlowClass = glowClass;
+            } else {
+                currentGlowClass = '';
+            }
+        }
+
+        function updateCustomRotation() {
+            const rotation = rotationSlider.value;
+            const speed = speedSlider.value;
+            
+            rotationValue.textContent = rotation + '°';
+            speedValue.textContent = speed + 's';
+            
+            rotationDisplay.innerHTML = `transform: rotate(${rotation}deg);<br>animation-duration: ${speed}s;`;
+        }
+
+        function updateCustomGlow() {
+            const intensity = glowSlider.value;
+            glowValue.textContent = intensity + '%';
+            
+            targetImage.classList.remove('glow-red', 'glow-blue', 'glow-green', 'glow-purple', 'glow-yellow', 'glow-pink');
+            
+            if (intensity > 0) {
+                const baseIntensity = (intensity / 100) * 20;
+                targetImage.style.filter = `drop-shadow(0 0 ${baseIntensity}px rgba(0, 212, 255, ${intensity / 100})) drop-shadow(0 0 ${baseIntensity * 2}px rgba(124, 58, 237, ${intensity / 100}))`;
+            } else {
+                targetImage.style.filter = '';
+            }
+        }
+
+        function applyCustomRotation() {
+            stopRotation();
+            const rotation = rotationSlider.value;
+            const speed = speedSlider.value;
+            
+            imageWrapper.style.transform = `rotate(${rotation}deg)`;
+            imageWrapper.style.animation = `customRotate ${speed}s ease-in-out infinite`;
+            
+            const styleSheet = document.styleSheets[0];
+            let existingRuleIndex = -1;
+            
+            for (let i = 0; i < styleSheet.cssRules.length; i++) {
+                if (styleSheet.cssRules[i].name === 'customRotate') {
+                    existingRuleIndex = i;
+                    break;
+                }
+            }
+            
+            if (existingRuleIndex !== -1) {
+                styleSheet.deleteRule(existingRuleIndex);
+            }
+            
+            styleSheet.insertRule(`
+                @keyframes customRotate {
+                    0%, 100% { transform: rotate(0deg); }
+                    50% { transform: rotate(${rotation}deg); }
+                }
+            `, styleSheet.cssRules.length);
+        }
+
+        function resetCustom() {
+            rotationSlider.value = 0;
+            speedSlider.value = 3;
+            glowSlider.value = 100;
+            updateCustomRotation();
+            updateCustomGlow();
+            stopRotation();
+            setGlow('none');
+        }
+
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    targetImage.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCustomRotation();
+            updateCustomGlow();
+        });
+    </script>
+</body>
+</html>
